@@ -15,7 +15,7 @@ const Playlist = ({ searchResultsTracks, playlist, setPlaylist }) => {
 
     const savePlaylist = () => {
         // Check that we have at least one song in our playlist and a name has been entered
-        if ( !tracks.length && name === '' ) return
+        if ( !tracks.length && name == '' ) return
 
         // Create array of track uris
         const trackURIs = tracks.map(track => track.uri)

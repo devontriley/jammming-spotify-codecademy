@@ -2,41 +2,37 @@ import React from 'react'
 import Tracklist from '../Tracklist/Tracklist'
 import Spotify from '@/utils/Spotify'
 
-const Playlist = ({ searchResultsTracks, playlist, setPlaylist }) => {
-    const { name, tracks } = playlist
+const Playlist = ({ playlistName, playlistTracks, onNameChange, onRemove, onSave }) => {
+    const handleNameChange = (e) => {
+        onNameChange(e.target.value)
+    }
 
-    const handlePlaylistNameChange = (e) => {
-		const newName = e.target.value
-		setPlaylist(prevState => ({
-			...prevState,
-			name: newName
-		}))
-	}
-
-    const savePlaylist = () => {
-        // Check that we have at least one song in our playlist and a name has been entered
-        if ( !tracks.length && name == '' ) return
-
-        // Create array of track uris
-        const trackURIs = tracks.map(track => track.uri)
-
-        // Create playlist and add tracks to it
-        Spotify.savePlaylist( name, trackURIs )
-
-        // Clear the playlist and reset the name
-        setPlaylist({
-            name: '',
-            tracks: []
-        })
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        onSave()
     }
 
     return (
         <div className="border border-white rounded p-5 bg-[rgb(255,255,255,0.1)]">
-            <input className="w-full text-white font-bold text-2xl bg-transparent" type="text" onChange={handlePlaylistNameChange} value={name} placeholder="Enter a playlist name" />
-            {tracks.length > 0 && <Tracklist searchResultsTracks={searchResultsTracks} playlistTracks={tracks} tracks={tracks} isPlaylist={true} setPlaylist={setPlaylist} />}
-            <div className="text-center">
-                <button className="p-3 rounded bg-purple-900" onClick={savePlaylist}>Save to Spotify</button>
-            </div>
+            <form onSubmit={handleSubmit}>
+                <input 
+                    className="w-full py-3 text-white outline-none border-b border-transparent focus:border-b focus:border-white font-bold text-2xl bg-transparent placeholder:text-white/70" 
+                    type="text" 
+                    onChange={handleNameChange}
+                    value={playlistName} 
+                    placeholder="Enter a playlist name" 
+                />
+
+                <Tracklist 
+                    tracks={playlistTracks}
+                    onRemove={onRemove}
+                    isRemoval={true}
+                />
+
+                <button className="p-3 mt-5 rounded bg-black bg-opacity-40 hover:bg-opacity-70">
+                    Save to Spotify
+                </button>
+            </form>
         </div>
     )
 }

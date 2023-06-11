@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useState, useEffect } from "react";
+// import Image from "next/image";
+// import { Play } from "next/font/google";
 
 import Spotify from "@/utils/Spotify"
 
@@ -10,51 +11,60 @@ import SearchBar from "@/components/SearchBar/SearchBar";
 import SearchResults from "@/components/SearchResults/SearchResult";
 import Playlist from "@/components/Playlist/Playlist";
 
-import { Play } from "next/font/google";
-
-const sampleTracks = [
-  {
-	id: 0,
-	name: "Semi-Charmed Life",
-	artist: "Third Eye Blind",
-	album: "Third Eye Blind",
-	uri: "spotify:track:6rqhFgbbKwnb9MLmUQDhG6"
-  },
-  {
-	id: 1,
-	name: "Zero",
-	artist: "Smashing Pumpkins",
-	album: "Melancholy and the Infinite Sadness",
-	uri: 'spotify:track:6rqhFgbbKwnb9MLmUQDh51'
-  },
-  {
-	id: 2,
-	name: "Father of Mine",
-	artist: "Everclear",
-	album: "So Much For the Afterglow",
-	uri: 'spotify:track:6rqhFgbbKwnb9MLmUadasdad'
-  }
-];
-
 export default function Home() {
-	const [searchText, setSearchText] = useState("");
-	const [searchResultsTracks, setTracks] = useState([]);
-	const [playlist, setPlaylist] = useState({
-		name: '',
-		tracks: []
-	});
+	// const [error, setError] = useState('')
+	// const [userName, setUserName] = useState('')
+	const [searchResults, setSearchResults] = useState([])
+	const [playlistName, setPlaylistName] = useState('')
+	const [playlistTracks, setPlaylistTracks] = useState([])
 
-	const handleSearchTextChange = (value) => {
-		setSearchText(value);
-	};
+	// Fetch Spotify access token when the app loads
+	useEffect(() => {
+		Spotify.getAccessToken()
+	}, [])
 
-	const handleSearchSubmit = async () => {
-		if(!searchText) return
-		const searchResults = await Spotify.search(searchText)
-		if(searchResults.length) {
-			setTracks(searchResults)
-		}
+	const handleSearch = async (term) => {
+		console.log(term)
+		Spotify.search(term).then(setSearchResults)
 	}
+
+	const addTrack = (track) => {
+		if ( playlistTracks.some((savedTrack) => savedTrack.id === track.id))
+			return
+		setPlaylistTracks((prevTracks) => [...prevTracks, track])
+	}
+
+	const removeTrack = (track) => {
+		setPlaylistTracks((prevTracks => {
+			prevTracks.filter((currentTrack) => currentTrack.id === track.id)
+		}))
+	}
+
+	const updatePlaylistName = (name) => {
+		setPlaylistName(name)
+	}
+
+	const savePlaylist = () => {
+		if ( playlistName === '' ) return
+		const trackURIs = playlistTracks.map(track => track.uri)
+		Spotify.savePlaylist(playlistName, trackURIs).then(() => {
+			setPlaylistName('')
+			setPlaylistTracks([])
+		})
+	}
+
+	// Testing MSW by automatically sending GET request to Spotify for user data
+	// useEffect(() => {
+	// 	const fetchUser = async () => {
+	// 		try {
+	// 			const { display_name } = await Spotify.getCurrentUser()
+	// 			setUserName(display_name)
+	// 		} catch (error) {
+	// 			setError(error)
+	// 		}
+	// 	}
+	// 	fetchUser()
+	// }, [])
 
 	return (
 		<main className="min-h-screen flex justify-center py-10">
@@ -62,11 +72,21 @@ export default function Home() {
 
 				<h1 className="text-3xl font-bold italic text-center mb-5">Jammming</h1>
 
-				<SearchBar value={searchText} onInputChange={handleSearchTextChange} onSearchSubmit={handleSearchSubmit} />
+				{/* <div>
+					{ userName }
+				</div> */}
 
-				<div className="grid grid-flow-cols grid-cols-2 gap-5 mt-10">
-					<SearchResults searchResultsTracks={searchResultsTracks} playlist={playlist} setPlaylist={setPlaylist} />
-					<Playlist searchResultsTracks={searchResultsTracks} playlist={playlist} setPlaylist={setPlaylist} />
+				<SearchBar onSearchSubmit={handleSearch} />
+
+				<div className="grid grid-flow-cols md:grid-cols-2 gap-5 mt-5">
+					<SearchResults searchResults={searchResults} onAdd={addTrack} />
+					<Playlist 
+						playlistName={playlistName}
+						playlistTracks={playlistTracks} 
+						onNameChange={updatePlaylistName}
+						onRemove={removeTrack}
+						onSave={savePlaylist}
+					/>
 				</div>
 
 			</div>

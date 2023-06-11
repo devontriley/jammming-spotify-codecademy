@@ -1,6 +1,7 @@
 {
   "plugins": [
-    "jest"
+    "jest",
+    "react"
   ],
   "env": {
     "jest/globals": true
@@ -12,5 +13,9 @@
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react/jsx-runtime"
-  ]
+  ],
+  "rules": {
+    "no-unused-vars": "off",
+    "react/prop-types": "off"
+  }
 }
